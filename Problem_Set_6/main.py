@@ -6,8 +6,9 @@ from torch.utils.data import DataLoader
 import argparse
 import wandb
 import random, os
+from tqdm import tqdm
 
-def seed_all(seed=1):
+def seed_all(seed=42):
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -65,13 +66,14 @@ def train(model, args):
     # create dataset, data augmentation for cifar10
     train_loader, test_loader = GetCifar10(args.batch_size)
     # create optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     # create scheduler 
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.5)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
     # train
     best_acc = 0.0
     best_model_state = None
-    for epoch in range(args.epochs):
+    for epoch in tqdm(range(args.epochs)):
         model.train()
         for i, data in enumerate(train_loader):
             images, labels = data
@@ -88,6 +90,7 @@ def train(model, args):
         test_loss, test_acc = evaluate(model, test_loader, args.device)
         # log the wandb
         wandb.log({"epoch": args.epochs,"train_loss": train_loss, "train_acc": train_acc, "test_loss": test_loss, "test_acc": test_acc})
+        print(f'Epoch {epoch+1}/{args.epochs}, train loss: {train_loss:.4f}, train acc: {train_acc:.2f}, test loss: {test_loss:.4f}, test acc: {test_acc:.2f}')
 
         if test_acc > best_acc:
             best_acc = test_acc
@@ -121,7 +124,7 @@ def main():
 
     parser.add_argument('--model', type=str, default='VGG', help='VGG, ResNet, ResNext')
     parser.add_argument('--batch_size', type=int, default=128, help='batch size')
-    parser.add_argument('--lr', type=float, default=3e-4, help='learning rate')
+    parser.add_argument('--lr', type=float, default=4e-4, help='learning rate')
     parser.add_argument('--epochs', type=int, default=50, help='epochs')
     parser.add_argument('--device', type=str, default='cuda', help='cpu, cuda')
     args = parser.parse_args()

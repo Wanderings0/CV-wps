@@ -3,3 +3,5 @@
 /Problem_Set_6/wandb
 /Problem_Set_6/__pycache__
 /Problem_Set_6/model_best
+/Problem_Set_6/run.sh
+/Problem_Set_6/*.out

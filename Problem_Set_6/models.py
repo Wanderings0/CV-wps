@@ -13,7 +13,7 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1),  
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
@@ -25,7 +25,7 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
@@ -37,11 +37,11 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
@@ -53,11 +53,11 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
@@ -69,11 +69,11 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
@@ -92,13 +92,13 @@ class VGG(nn.Module):
         self.fc = nn.Sequential(
             # nn.Flatten(),
             
-            nn.Linear(512,4096),
+            nn.Linear(25088,128),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout),
-            nn.Linear(4096,4096),
+            nn.Linear(128,128),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
-            nn.Linear(4096,num_class)
+            # nn.Dropout(dropout),
+            nn.Linear(128,num_class)
             # if we use crossentropy then we needn't softmax() here.
         )
 
@@ -110,7 +110,8 @@ class VGG(nn.Module):
         out = self.layer3(out)
         out = self.layer4(out)
         out = self.layer5(out)
-        out = out.view(-1,512)
+        # out = out.view(-1,512)
+        out = out.view(out.size(0),-1)
         # classification
         out= self.fc(out)
         return out
@@ -225,8 +226,11 @@ class ResNet(nn.Module):
         # classification
         out = self.conv1(x)
         out = self.conv2_x(out)
+        out = F.dropout(out, p=0.5)
         out = self.conv3_x(out)
+        out = F.dropout(out, p=0.5)
         out = self.conv4_x(out)
+        out = F.dropout(out, p=0.5)
         out = self.conv5_x(out)
         out = self.avgpool(out)
         out = self.fc(out.view(out.size(0),-1))
@@ -314,15 +318,20 @@ class ResNext(nn.Module):
         # classification
         out = self.conv1(x)
         out = self.conv2_x(out)
+        out = F.dropout(out, p=0.5)
         out = self.conv3_x(out)
+        # add a dropout layer
+        out = F.dropout(out, p=0.5)
         out = self.conv4_x(out)
+        out = F.dropout(out, p=0.5)
         out = self.conv5_x(out)
+        
         # out = self.feature(x)
         out = self.avgpool(out)
         out = self.fc(out.view(out.size(0),-1))
         return out
 
-def VGG16(dropout=0.5):
+def VGG16(dropout=0.8):
     return VGG('VGG16',dropout,10)
 
 def ResNet34():
@@ -336,13 +345,14 @@ def ResNeXt50_32x4d():
 
 
 if __name__ == '__main__':
-    from torchsummary import summary
-    import torchvision.models as models
+    pass
+    # from torchsummary import summary
+    # import torchvision.models as models
 
-    # model = ResNeXt50_32x4d()
-    # model = ResNet50()
-    model = VGG16()
-    summary(model,(3,224,224))
+    # # model = ResNeXt50_32x4d()
+    # # model = ResNet50()
+    # model = VGG16()
+    # summary(model,(3,224,224))
 
 
     # Load the pre-trained ResNet-34 model
