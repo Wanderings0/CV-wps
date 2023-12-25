@@ -65,7 +65,7 @@ class VGG(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2) 
         )
 
-        self.layer4 = nn.Sequential(
+        self.layer5 = nn.Sequential(
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
@@ -81,16 +81,17 @@ class VGG(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2) 
         )
 
-        self.conv = nn.Sequential(
-            self.layer1,
-            self.layer2,
-            self.layer3,
-            self.layer4,
-            self.layer5
-        )
+        # self.conv = nn.Sequential(
+        #     self.layer1,
+        #     self.layer2,
+        #     self.layer3,
+        #     self.layer4,
+        #     self.layer5
+        # )
 
         self.fc = nn.Sequential(
-            nn.Flatten(),
+            # nn.Flatten(),
+            
             nn.Linear(512,4096),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout),
@@ -104,7 +105,12 @@ class VGG(nn.Module):
     def forward(self, x: torch.Tensor):
         # x: input image, shape: [B * C * H* W]
         # extract features
-        out = self.conv(x)
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        out = out.view(-1,512)
         # classification
         out= self.fc(out)
         return out
@@ -316,6 +322,9 @@ class ResNext(nn.Module):
         out = self.fc(out.view(out.size(0),-1))
         return out
 
+def VGG16(dropout=0.5):
+    return VGG('VGG16',dropout,10)
+
 def ResNet34():
     return ResNet(ResBlock,[3,4,6,3],num_classes=10)
 
@@ -325,14 +334,16 @@ def ResNet50():
 def ResNeXt50_32x4d():
     return ResNext(ResNextBlock,[3,4,6,3],4,32,10)
 
-from torchsummary import summary
-import torchvision.models as models
-
 
 if __name__ == '__main__':
+    from torchsummary import summary
+    import torchvision.models as models
+
     # model = ResNeXt50_32x4d()
-    model = ResNet50()
+    # model = ResNet50()
+    model = VGG16()
     summary(model,(3,224,224))
+
 
     # Load the pre-trained ResNet-34 model
     # resnet = models.resnet34(pretrained=True)
