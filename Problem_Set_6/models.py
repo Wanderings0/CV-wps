@@ -328,14 +328,15 @@ def ResNeXt50_32x4d():
 
 
 if __name__ == '__main__':
-    pass
-    # from torchsummary import summary
+    # pass
+    from torchsummary import summary
     # import torchvision.models as models
 
-    # # model = ResNeXt50_32x4d()
-    # # model = ResNet50()
+    model = ResNeXt50_32x4d()
+    # model = ResNet50()
+    # model = ResNet34()
     # model = VGG16()
-    # summary(model,(3,224,224))
+    summary(model,(3,224,224))
 
 
     # Load the pre-trained ResNet-34 model
