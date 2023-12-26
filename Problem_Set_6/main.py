@@ -1,12 +1,14 @@
 import torch
 import torch.nn.functional as F
 from models import *
+from AugumentsCifar import *
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import argparse
 import wandb
 import random, os
 from tqdm import tqdm
+
 
 def seed_all(seed=42):
     random.seed(seed)
@@ -21,6 +23,7 @@ DIR = {'CIFAR10': './data'}
 def GetCifar10(batchsize, attack=False):
     trans_t = transforms.Compose([transforms.RandomCrop(32, padding=4),
                                   transforms.RandomHorizontalFlip(),
+                                  CIFAR10Policy(),
                                   transforms.ToTensor(),
                                   transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                                   ])
@@ -30,8 +33,8 @@ def GetCifar10(batchsize, attack=False):
         trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
     train_data = datasets.CIFAR10(DIR['CIFAR10'], train=True, transform=trans_t, download=True)
     test_data = datasets.CIFAR10(DIR['CIFAR10'], train=False, transform=trans, download=True) 
-    train_dataloader = DataLoader(train_data, batch_size=batchsize, shuffle=True, num_workers=4)
-    test_dataloader = DataLoader(test_data, batch_size=batchsize, shuffle=False, num_workers=4)
+    train_dataloader = DataLoader(train_data, batch_size=batchsize, shuffle=True, num_workers=8)
+    test_dataloader = DataLoader(test_data, batch_size=batchsize, shuffle=False, num_workers=8)
     return train_dataloader, test_dataloader
 
 def evaluate(model, test_loader, device):
@@ -61,12 +64,12 @@ def train(model, args):
         args: configuration
     '''
     # create wandb project
-    wandb.init(project="HW6",config=args)
-    wandb.runname = f'{args.model}_{args.lr}_{args.epochs}'
+    wandb.init(project="HomeWork6-wps",config=args)
+    wandb.runname = f'{args.model}'
     # create dataset, data augmentation for cifar10
     train_loader, test_loader = GetCifar10(args.batch_size)
     # create optimizer
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr,weight_decay=1e-4)
     # create scheduler 
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.5)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
@@ -123,7 +126,7 @@ def main():
     parser = argparse.ArgumentParser(description='The configs')
 
     parser.add_argument('--model', type=str, default='VGG', help='VGG, ResNet, ResNext')
-    parser.add_argument('--batch_size', type=int, default=128, help='batch size')
+    parser.add_argument('--batch_size', type=int, default=200, help='batch size')
     parser.add_argument('--lr', type=float, default=4e-4, help='learning rate')
     parser.add_argument('--epochs', type=int, default=50, help='epochs')
     parser.add_argument('--device', type=str, default='cuda', help='cpu, cuda')

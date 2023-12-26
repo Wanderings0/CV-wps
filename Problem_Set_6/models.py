@@ -17,7 +17,7 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
         
@@ -29,7 +29,7 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.MaxPool2d(kernel_size=2,stride=2)
         )
 
@@ -45,7 +45,7 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.MaxPool2d(kernel_size=2,stride=2)
         )
 
@@ -61,7 +61,7 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.MaxPool2d(kernel_size=2, stride=2) 
         )
 
@@ -77,28 +77,20 @@ class VGG(nn.Module):
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.MaxPool2d(kernel_size=2, stride=2) 
         )
-
-        # self.conv = nn.Sequential(
-        #     self.layer1,
-        #     self.layer2,
-        #     self.layer3,
-        #     self.layer4,
-        #     self.layer5
-        # )
 
         self.fc = nn.Sequential(
             # nn.Flatten(),
             
-            nn.Linear(25088,128),
+            nn.Linear(512,4096),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout),
-            nn.Linear(128,128),
+            nn.Linear(4096,1024),
             nn.ReLU(inplace=True),
-            # nn.Dropout(dropout),
-            nn.Linear(128,num_class)
+            nn.Dropout(dropout),
+            nn.Linear(1024,num_class)
             # if we use crossentropy then we needn't softmax() here.
         )
 
@@ -110,7 +102,6 @@ class VGG(nn.Module):
         out = self.layer3(out)
         out = self.layer4(out)
         out = self.layer5(out)
-        # out = out.view(-1,512)
         out = out.view(out.size(0),-1)
         # classification
         out= self.fc(out)
@@ -226,11 +217,11 @@ class ResNet(nn.Module):
         # classification
         out = self.conv1(x)
         out = self.conv2_x(out)
-        out = F.dropout(out, p=0.5)
+        # out = F.dropout(out, p=0.5)
         out = self.conv3_x(out)
-        out = F.dropout(out, p=0.5)
+        # out = F.dropout(out, p=0.5)
         out = self.conv4_x(out)
-        out = F.dropout(out, p=0.5)
+        # out = F.dropout(out, p=0.5)
         out = self.conv5_x(out)
         out = self.avgpool(out)
         out = self.fc(out.view(out.size(0),-1))
@@ -296,13 +287,6 @@ class ResNext(nn.Module):
         # 3. define full-connected layer to classify
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Linear(512*block.expansion,num_classes)
-        # self.feature = nn.Sequential(
-        #     self.conv1,
-        #     self.conv2_x,
-        #     self.conv3_x,
-        #     self.conv4_x,
-        #     self.conv5_x
-        # )
 
     def _make_layer(self,block,out_channels,num_blocks,stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -318,12 +302,9 @@ class ResNext(nn.Module):
         # classification
         out = self.conv1(x)
         out = self.conv2_x(out)
-        out = F.dropout(out, p=0.5)
         out = self.conv3_x(out)
-        # add a dropout layer
-        out = F.dropout(out, p=0.5)
         out = self.conv4_x(out)
-        out = F.dropout(out, p=0.5)
+
         out = self.conv5_x(out)
         
         # out = self.feature(x)
@@ -331,7 +312,7 @@ class ResNext(nn.Module):
         out = self.fc(out.view(out.size(0),-1))
         return out
 
-def VGG16(dropout=0.8):
+def VGG16(dropout=0.5):
     return VGG('VGG16',dropout,10)
 
 def ResNet34():
