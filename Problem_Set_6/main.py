@@ -64,8 +64,8 @@ def train(model, args):
         args: configuration
     '''
     # create wandb project
-    wandb.init(project="HomeWork6-wps",config=args)
-    wandb.runname = f'{args.model}'
+    wandb.init(project="HomeWork6",config=args)
+    wandb.run.name = f'{args.model}'
     # create dataset, data augmentation for cifar10
     train_loader, test_loader = GetCifar10(args.batch_size)
     # create optimizer
