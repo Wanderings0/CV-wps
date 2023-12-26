@@ -10,7 +10,7 @@ import random, os
 from tqdm import tqdm
 
 
-def seed_all(seed=42):
+def seed_all(seed=3407):
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -70,8 +70,9 @@ def train(model, args):
     train_loader, test_loader = GetCifar10(args.batch_size)
     # create optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr,weight_decay=1e-4)
-    # create scheduler 
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.5)
+    # create scheduler using warmup and cosine decay
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=15, T_mult=6)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.5)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
     # train
     best_acc = 0.0
@@ -141,9 +142,11 @@ def main():
     # load model
     if args.model == 'VGG':
         model = VGG16()
-    elif args.model == 'ResNet':
+    elif args.model == 'ResNet34':
+        # model = ResNet50()
+        model = ResNet34()
+    elif args.model == 'ResNet50':
         model = ResNet50()
-        # model = ResNet34()
     elif args.model == 'ResNext':
         model = ResNeXt50_32x4d()
     else:
